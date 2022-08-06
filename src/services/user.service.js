@@ -8,8 +8,14 @@ const ApiError = require('../utils/ApiError');
  * @returns {Promise<User>}
  */
 const createUser = async (userBody) => {
-  if (await User.isEmailTaken(userBody.email)) {
+  if (await User.isEmailTaken(userBody.emailAddress)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  }
+  if (await User.isAccountNumberTaken(userBody.accountNumber)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Account Number already taken');
+  }
+  if (await User.isIdentityNumberTaken(userBody.identityNumber)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Identity Number already taken');
   }
   return User.create(userBody);
 };
@@ -43,7 +49,18 @@ const getUserById = async (id) => {
  * @returns {Promise<User>}
  */
 const getUserByEmail = async (email) => {
-  return User.findOne({ email });
+  const userByEmail = await User.findOne({ emailAddress: email });
+  return userByEmail;
+};
+
+const getUserByAccountNumber = async (accountNum) => {
+  const userByAccountNumber = await User.findOne({ accountNumber: accountNum });
+  return userByAccountNumber;
+};
+
+const getUserByIdentityNumber = async (identityNum) => {
+  const userByIdentityNumber = await User.findOne({ identityNumber: identityNum });
+  return userByIdentityNumber;
 };
 
 /**
@@ -59,6 +76,12 @@ const updateUserById = async (userId, updateBody) => {
   }
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  }
+  if (updateBody.accountNumber && (await User.isAccountNumberTaken(updateBody.email, userId))) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Account Number already taken');
+  }
+  if (updateBody.accountNumber && (await User.isIdentityNumberTaken(updateBody.email, userId))) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Identity Number already taken');
   }
   Object.assign(user, updateBody);
   await user.save();
@@ -84,6 +107,8 @@ module.exports = {
   queryUsers,
   getUserById,
   getUserByEmail,
+  getUserByAccountNumber,
+  getUserByIdentityNumber,
   updateUserById,
   deleteUserById,
 };

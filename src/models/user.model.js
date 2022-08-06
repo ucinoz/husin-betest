@@ -73,7 +73,17 @@ userSchema.plugin(paginate);
  * @returns {Promise<boolean>}
  */
 userSchema.statics.isEmailTaken = async function (email, excludeUserId) {
-  const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
+  const user = await this.findOne({ emailAddress: email, _id: { $ne: excludeUserId } });
+  return !!user;
+};
+
+userSchema.statics.isAccountNumberTaken = async function (accountNum) {
+  const user = await this.findOne({ accountNumber: accountNum });
+  return !!user;
+};
+
+userSchema.statics.isIdentityNumberTaken = async function (identityNum) {
+  const user = await this.findOne({ identityNumber: identityNum });
   return !!user;
 };
 
@@ -84,9 +94,6 @@ userSchema.statics.isEmailTaken = async function (email, excludeUserId) {
  */
 userSchema.methods.isPasswordMatch = async function (password) {
   const user = this;
-  console.log('i am right here old', password);
-  console.log('i am right here new', user.password);
-  console.log('check return value', await bcrypt.compare(password, user.password));
   return bcrypt.compare(password, user.password);
 };
 

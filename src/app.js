@@ -5,6 +5,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const compression = require('compression');
 const cors = require('cors');
 const passport = require('passport');
+const redis = require('redis');
 const httpStatus = require('http-status');
 const config = require('./config/config');
 const morgan = require('./config/morgan');
@@ -57,6 +58,34 @@ app.use('/v1', routes);
 app.use((req, res, next) => {
   next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
 });
+
+// Set Redis Connection
+const client = redis.createClient({
+  // host: '127.0.0.1',
+  // port: 6379,
+  enableOfflineQueue: false,
+  retry_strategy(options) {
+    if (options.error && options.error.code === 'ECONNREFUSED') {
+      return new Error('The server refused the connection');
+    }
+    if (options.total_retry_time > 1000 * 60 * 60) {
+      return new Error('Retry time exhausted');
+    }
+    if (options.times_connected > 10) {
+      return undefined;
+    }
+    return Math.max(options.attempt * 100, 3000);
+  },
+});
+
+client.on('connect', () => {
+  // eslint-disable-next-line no-console
+  console.log('Connected To Redis Client Server!');
+});
+
+// eslint-disable-next-line no-console
+client.on('error', (err) => console.log('Redis Client Server Error', err));
+client.connect();
 
 // convert error to ApiError, if needed
 app.use(errorConverter);

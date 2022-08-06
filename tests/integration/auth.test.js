@@ -19,24 +19,26 @@ const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixt
 setupTestDB();
 
 describe('Auth routes', () => {
-  describe('POST /v1/auth/register', () => {
+  describe('POST /v1/auth/create', () => {
     let newUser;
     beforeEach(() => {
       newUser = {
-        name: faker.name.findName(),
-        email: faker.internet.email().toLowerCase(),
+        userName: faker.name.findName(),
+        emailAddress: faker.internet.email().toLowerCase(),
+        accountNumber: 110,
+        identityNumber: 123,
         password: 'password1',
       };
     });
 
     test('should return 201 and successfully register user if request data is ok', async () => {
-      const res = await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.CREATED);
+      const res = await request(app).post('/v1/auth/create').send(newUser).expect(httpStatus.CREATED);
 
       expect(res.body.user).not.toHaveProperty('password');
       expect(res.body.user).toEqual({
         id: expect.anything(),
-        name: newUser.name,
-        email: newUser.email,
+        userName: newUser.name,
+        emailAddress: newUser.email,
         role: 'user',
         isEmailVerified: false,
       });
@@ -55,30 +57,30 @@ describe('Auth routes', () => {
     test('should return 400 error if email is invalid', async () => {
       newUser.email = 'invalidEmail';
 
-      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/create').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
 
     test('should return 400 error if email is already used', async () => {
       await insertUsers([userOne]);
       newUser.email = userOne.email;
 
-      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/create').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
 
     test('should return 400 error if password length is less than 8 characters', async () => {
       newUser.password = 'passwo1';
 
-      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/create').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
 
     test('should return 400 error if password does not contain both letters and numbers', async () => {
       newUser.password = 'password';
 
-      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/create').send(newUser).expect(httpStatus.BAD_REQUEST);
 
       newUser.password = '11111111';
 
-      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/create').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
   });
 

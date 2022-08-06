@@ -6,7 +6,7 @@ const auth = require('../../middlewares/auth');
 
 const router = express.Router();
 
-router.post('/register', validate(authValidation.register), authController.register);
+router.post('/create', validate(authValidation.register), authController.create);
 router.post('/login', validate(authValidation.login), authController.login);
 router.post('/logout', validate(authValidation.logout), authController.logout);
 router.post('/refresh-tokens', validate(authValidation.refreshTokens), authController.refreshTokens);
@@ -26,9 +26,9 @@ module.exports = router;
 
 /**
  * @swagger
- * /auth/register:
+ * /auth/create:
  *   post:
- *     summary: Register as user
+ *     summary: create user
  *     tags: [Auth]
  *     requestBody:
  *       required: true

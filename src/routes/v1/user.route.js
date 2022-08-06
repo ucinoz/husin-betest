@@ -17,6 +17,14 @@ router
   .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
   .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
 
+router
+  .route('/account')
+  .post(auth('getUsers'), validate(userValidation.getUserAccount), userController.getUserByAccountNumber);
+
+router
+  .route('/identity')
+  .post(auth('getUsers'), validate(userValidation.getUserAccount), userController.getUserByIdentityNumber);
+
 module.exports = router;
 
 /**
