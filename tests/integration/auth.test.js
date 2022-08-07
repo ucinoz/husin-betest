@@ -23,7 +23,7 @@ describe('Auth routes', () => {
     let newUser;
     beforeEach(() => {
       newUser = {
-        userName: faker.name.findName(),
+        userName: faker.userName.findName(),
         emailAddress: faker.internet.email().toLowerCase(),
         accountNumber: 110,
         identityNumber: 123,
@@ -37,8 +37,8 @@ describe('Auth routes', () => {
       expect(res.body.user).not.toHaveProperty('password');
       expect(res.body.user).toEqual({
         id: expect.anything(),
-        userName: newUser.name,
-        emailAddress: newUser.email,
+        userName: newUser.userName,
+        emailAddress: newUser.emailAddress,
         role: 'user',
         isEmailVerified: false,
       });
@@ -46,7 +46,12 @@ describe('Auth routes', () => {
       const dbUser = await User.findById(res.body.user.id);
       expect(dbUser).toBeDefined();
       expect(dbUser.password).not.toBe(newUser.password);
-      expect(dbUser).toMatchObject({ name: newUser.name, email: newUser.email, role: 'user', isEmailVerified: false });
+      expect(dbUser).toMatchObject({
+        name: newUser.userName,
+        email: newUser.emailAddress,
+        role: 'user',
+        isEmailVerified: false,
+      });
 
       expect(res.body.tokens).toEqual({
         access: { token: expect.anything(), expires: expect.anything() },
@@ -55,14 +60,14 @@ describe('Auth routes', () => {
     });
 
     test('should return 400 error if email is invalid', async () => {
-      newUser.email = 'invalidEmail';
+      newUser.emailAddress = 'invalidEmail';
 
       await request(app).post('/v1/auth/create').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
 
     test('should return 400 error if email is already used', async () => {
       await insertUsers([userOne]);
-      newUser.email = userOne.email;
+      newUser.emailAddress = userOne.emailAddress;
 
       await request(app).post('/v1/auth/create').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
@@ -88,7 +93,7 @@ describe('Auth routes', () => {
     test('should return 200 and login user if email and password match', async () => {
       await insertUsers([userOne]);
       const loginCredentials = {
-        email: userOne.email,
+        emailAddress: userOne.emailAddress,
         password: userOne.password,
       };
 
@@ -96,8 +101,8 @@ describe('Auth routes', () => {
 
       expect(res.body.user).toEqual({
         id: expect.anything(),
-        name: userOne.name,
-        email: userOne.email,
+        userName: userOne.userName,
+        emailAddress: userOne.emailAddress,
         role: userOne.role,
         isEmailVerified: userOne.isEmailVerified,
       });
@@ -110,7 +115,7 @@ describe('Auth routes', () => {
 
     test('should return 401 error if there are no users with that email', async () => {
       const loginCredentials = {
-        email: userOne.email,
+        emailAddress: userOne.emailAddress,
         password: userOne.password,
       };
 
@@ -122,7 +127,7 @@ describe('Auth routes', () => {
     test('should return 401 error if password is wrong', async () => {
       await insertUsers([userOne]);
       const loginCredentials = {
-        email: userOne.email,
+        emailAddress: userOne.emailAddress,
         password: 'wrongPassword1',
       };
 
@@ -260,7 +265,10 @@ describe('Auth routes', () => {
     });
 
     test('should return 404 if email does not belong to any user', async () => {
-      await request(app).post('/v1/auth/forgot-password').send({ email: userOne.email }).expect(httpStatus.NOT_FOUND);
+      await request(app)
+        .post('/v1/auth/forgot-password')
+        .send({ emailAddress: userOne.emailAddress })
+        .expect(httpStatus.NOT_FOUND);
     });
   });
 

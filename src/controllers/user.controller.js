@@ -1,9 +1,13 @@
 const httpStatus = require('http-status');
+const util = require('util');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
-const { redisClient } = require('../app');
+const redis = require('../loaders/redisClientLoader');
+
+const setAsync = util.promisify(redis.SET).bind(redis);
+const getAsync = util.promisify(redis.GET).bind(redis);
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -13,8 +17,16 @@ const createUser = catchAsync(async (req, res) => {
 const getUsers = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['userName', 'role']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await userService.queryUsers(filter, options);
-  res.send(result);
+  const userCache = await getAsync('foo');
+  if (!userCache) {
+    const result = await userService.queryUsers(filter, options);
+    const cacheResponse = await setAsync('foo', JSON.stringify(result));
+    res.send(result);
+    return new Promise((resolve, reject) =>
+      cacheResponse !== 'OK' ? reject(new Error('REDIS SET FAILED')) : resolve(result)
+    );
+  }
+  res.send(JSON.parse(userCache));
 });
 
 const getUser = catchAsync(async (req, res) => {

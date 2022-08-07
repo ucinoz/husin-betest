@@ -9,25 +9,29 @@ const hashedPassword = bcrypt.hashSync(password, salt);
 
 const userOne = {
   _id: mongoose.Types.ObjectId(),
-  name: faker.name.findName(),
-  email: faker.internet.email().toLowerCase(),
+  userName: faker.name.findName(),
+  emailAddress: faker.internet.email().toLowerCase(),
   password,
   role: 'user',
   isEmailVerified: false,
+  accountNumber: 101,
+  identityNumber: 212,
 };
 
 const userTwo = {
   _id: mongoose.Types.ObjectId(),
-  name: faker.name.findName(),
-  email: faker.internet.email().toLowerCase(),
+  userName: faker.name.findName(),
+  emailAddress: faker.internet.email().toLowerCase(),
   password,
   role: 'user',
   isEmailVerified: false,
+  accountNumber: 101,
+  identityNumber: 212,
 };
 
 const admin = {
   _id: mongoose.Types.ObjectId(),
-  name: faker.name.findName(),
+  userName: faker.userName.findName(),
   email: faker.internet.email().toLowerCase(),
   password,
   role: 'admin',
